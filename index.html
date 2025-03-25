@@ -6,12 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Preview</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Estilos básicos de resaltado de código */
+        pre {
+            background-color: #2d2d2d;
+            color: #ccc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+        /* Colores básicos de sintaxis */
+        .keyword { color: #ff6f61; }
+        .string { color: #7ec699; }
+        .comment { color: #999; }
+        .function { color: #79b8ff; }
+    </style>
 </head>
 
 <body class="h-screen flex flex-col bg-gray-900 text-white">
-    <header class="w-full h-[8vh] bg-blue-600 shadow-md flex justify-center items-center">
-        <button id="generate-html" class="bg-white text-blue-600 px-5 py-2 font-semibold rounded-md shadow-md hover:bg-gray-200 transition">
-            Generar
+    <header class="w-full h-[8vh] bg-blue-600 shadow-md flex justify-center items-center gap-4">
+        <button id="apply-format" class="bg-green-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-green-400 transition">
+            Aplicar Formato
+        </button>
+        <button id="clear-editor" class="bg-red-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-red-400 transition">
+            Limpiar
         </button>
     </header>
 
@@ -28,6 +50,9 @@
         Derechos reservados - Hansell
     </footer>
 
+    <script src="./js/format.js"></script>
+    <script src="./js/blocks.js"></script>
+    <script src="./js/lists.js"></script>
     <script src="./js/app.js"></script>
 </body>
 
