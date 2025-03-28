@@ -1,4 +1,3 @@
-// En /js/lists.js
 function mapListItems(items, transformCallback) {
     return items.map((item, index) => {
         const cleanedItem = item.replace(/^\d+\.\s*/, '').trim();
@@ -7,13 +6,15 @@ function mapListItems(items, transformCallback) {
 }
 
 function convertLists(html) {
-    // Manejar listas no ordenadas (- Item)
+    // Handle unordered lists (- Item)
     html = html.replace(/(?:^|\n)(- .+(?:\n- .+)*)/g, match => {
-        let items = match.trim().split("\n").map(item => `<li>${item.replace(/^- /, '')}</li>`).join("");
+        let items = match.trim().split("\n").map(item => 
+            `<li>${item.replace(/^- /, '')}</li>`
+        ).join("");
         return `<ul class="list-disc list-inside mb-2">${items}</ul>`;
     });
-  
-    // Manejar listas ordenadas con función de orden superior
+ 
+    // Handle ordered lists with higher-order function
     html = html.replace(/(?:^|\n)(\d+\..+(?:\n\d+\..+)*)/g, match => {
         const listLines = match.trim().split("\n");
         const transformedItems = mapListItems(listLines, (item, number) => 
@@ -21,6 +22,6 @@ function convertLists(html) {
         );
         return `<ol class="list-decimal list-inside mb-2">${transformedItems.join('')}</ol>`;
     });
-  
+ 
     return html;
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Convierte encabezados Markdown a HTML con Tailwind y mayor espaciado
  */
 function convertHeadings(html) {
@@ -11,7 +11,7 @@ function convertHeadings(html) {
   return html;
 }
 
-/**
+/*
  * Transforma contenido en negrita e itálica
  */
 function convertTextStyles(html) {
@@ -20,7 +20,7 @@ function convertTextStyles(html) {
   return html;
 }
 
-/**
+/*
  * Función de transformación envuelta en promesa con manejo de excepciones
  * @param {string} markdownText - Texto Markdown a convertir
  * @returns {Promise} Promesa que resuelve con HTML o rechaza con error
@@ -45,7 +45,7 @@ function transformMarkdownToHtml(markdownText) {
             }
 
             // Validación de negrita y cursiva
-            const boldItalicMatches = html.match(/(\*{1,2}[^*\n]+\*{1,2})/g);
+            const boldItalicMatches = html.match(/(\*{1,2}[^\*\n]+\*{1,2})/g);
             if (boldItalicMatches) {
                 boldItalicMatches.forEach(match => {
                     const unbalancedStars = (match.match(/\*/g) || []).length;
@@ -83,7 +83,7 @@ function transformMarkdownToHtml(markdownText) {
     });
 }
 
-/**
+/*
  * Convierte el texto Markdown a HTML
  */
 function convertToHtml(text) {

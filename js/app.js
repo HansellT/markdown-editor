@@ -1,4 +1,4 @@
-/**
+/*
  * Variables para obtener elementos HTML
  */
 const markdownInput = document.querySelector("#markdown-input");
@@ -11,14 +11,17 @@ const loadFileButton = document.querySelector("#load-file");
 wordCountDisplay.classList.add("text-sm", "mt-2", "text-gray-300", "word-count");
 markdownInput.parentNode.appendChild(wordCountDisplay);
 
-/**
+// Key for localStorage
+const LOCAL_STORAGE_KEY = 'markdown-editor-content';
+
+/*
  * Renderiza el HTML generado en la vista previa con espaciado
  */
 function renderPreview(html) {
   previewSection.innerHTML = `<div class="space-y-3">${html}</div>`;
 }
 
-/**
+/*
  * Actualiza el contador de palabras y caracteres
  */
 function updateWordCount() {
@@ -28,7 +31,7 @@ function updateWordCount() {
   wordCountDisplay.textContent = `Palabras: ${words.length} | Caracteres: ${characters}`;
 }
 
-/**
+/*
  * Limpia el editor y la vista previa
  */
 function clearEditor() {
@@ -37,10 +40,98 @@ function clearEditor() {
   updateWordCount(); // Actualizar contador
 }
 
-// Función para exportar a PDF (simulada de manera asíncrona)
+// Function to save content to localStorage
+function saveToLocalStorage() {
+    const text = markdownInput.value;
+    localStorage.setItem(LOCAL_STORAGE_KEY, text);
+}
+
+// Function to restore content from localStorage
+function restoreFromLocalStorage() {
+    const savedContent = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedContent) {
+        markdownInput.value = savedContent;
+        
+        // Convert and show HTML
+        const html = convertToHtml(savedContent);
+        renderPreview(html);
+        updateWordCount();
+    }
+}
+
+// Function to clear saved content
+function clearSavedContent() {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    
+    // Optional: Clear editor and preview
+    clearEditor();
+    
+    // Show notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-yellow-500 text-white p-4 rounded-lg z-50';
+    notification.textContent = 'Contenido guardado eliminado';
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 3000);
+}
+
+// Function to download Markdown file
+function downloadMarkdownFile() {
+    const text = markdownInput.value;
+    
+    // Generate filename with current date and time
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().replace(/[:.]/g, '-');
+    const filename = `markdown-${formattedDate}.md`;
+
+    // Create a Blob with the Markdown content
+    const blob = new Blob([text], { type: 'text/markdown' });
+    
+    // Create a download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = filename;
+    
+    // Trigger download
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Optional: Show a success notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg z-50';
+    notification.textContent = `Archivo ${filename} descargado`;
+    document.body.appendChild(notification);
+
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 3000);
+}
+
+// Add download button to the header
+const downloadMarkdownButton = document.createElement('button');
+downloadMarkdownButton.id = 'download-markdown';
+downloadMarkdownButton.textContent = 'Descargar MD';
+downloadMarkdownButton.className = 'bg-purple-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-purple-400 transition';
+
+// Add clear saved content button
+const clearSavedContentButton = document.createElement('button');
+clearSavedContentButton.id = 'clear-saved-content';
+clearSavedContentButton.textContent = 'Limpiar Guardado';
+clearSavedContentButton.className = 'bg-red-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-red-400 transition';
+
+// Insert buttons in the header
+const header = document.querySelector('header');
+header.appendChild(downloadMarkdownButton);
+header.appendChild(clearSavedContentButton);
+
+// Function for exporting to PDF (from original code)
 function exportToPdf() {
     return new Promise((resolve, reject) => {
-        // Crear overlay de exportación
+        // Create overlay of export
         const exportOverlay = document.createElement('div');
         exportOverlay.innerHTML = `
             <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
@@ -51,19 +142,19 @@ function exportToPdf() {
         `;
         document.body.appendChild(exportOverlay);
 
-        // Simular proceso de exportación
+        // Simulate export process
         setTimeout(() => {
             try {
-                // Obtener contenido renderizado
+                // Get rendered content
                 const content = previewSection.innerHTML;
 
-                // En un escenario real, aquí iría la lógica de generación de PDF
-                // Por ahora, simularemos la exportación
+                // In a real scenario, PDF generation logic would go here
+                // For now, we'll simulate the export
                 if (content && content.trim() !== '') {
-                    // Simular descarga
+                    // Simulate download
                     const blob = new Blob([content], { type: 'application/pdf' });
                     const url = URL.createObjectURL(blob);
-                    
+                   
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = 'documento_markdown.pdf';
@@ -72,66 +163,65 @@ function exportToPdf() {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
 
-                    // Eliminar overlay
+                    // Remove overlay
                     document.body.removeChild(exportOverlay);
-                    
+                   
                     resolve('Exportación completada');
                 } else {
                     throw new Error('Contenido vacío');
                 }
             } catch (error) {
-                // Eliminar overlay
+                // Remove overlay
                 document.body.removeChild(exportOverlay);
 
-                // Mostrar mensaje de error
+                // Show error notification
                 const errorNotification = document.createElement('div');
                 errorNotification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg z-50';
                 errorNotification.textContent = 'No se pudo generar el PDF';
                 document.body.appendChild(errorNotification);
 
-                // Eliminar notificación después de 3 segundos
+                // Remove notification after 3 seconds
                 setTimeout(() => {
                     document.body.removeChild(errorNotification);
                 }, 3000);
 
                 reject(error);
             }
-        }, 1500); // Simular tiempo de procesamiento
+        }, 1500); // Simulate processing time
     });
 }
 
-// Crear input de archivo oculto
+// Create hidden file input
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
 fileInput.accept = '.md';
 fileInput.style.display = 'none';
 
-// Crear botón de exportación PDF
+// Create PDF export button
 const exportPdfButton = document.createElement('button');
 exportPdfButton.id = 'export-pdf';
 exportPdfButton.textContent = 'Exportar PDF';
 exportPdfButton.className = 'bg-blue-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-blue-400 transition';
 
-// Insertar botón en el header
-const header = document.querySelector('header');
+// Insert button in the header
 header.appendChild(exportPdfButton);
 
-// Evento para abrir selector de archivos
+// Event to open file selector
 loadFileButton.addEventListener('click', () => {
   fileInput.click();
 });
 
-// Manejar carga de archivo
+// Handle file upload
 fileInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
-  
-  // Validar extensión del archivo
+ 
+  // Validate file extension
   if (!file.name.endsWith('.md')) {
     alert('Por favor, seleccione solo archivos Markdown (.md)');
     return;
   }
 
-  // Crear un overlay de carga
+  // Create a loading overlay
   const loadingOverlay = document.createElement('div');
   loadingOverlay.innerHTML = `
     <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
@@ -142,38 +232,38 @@ fileInput.addEventListener('change', (event) => {
   `;
   document.body.appendChild(loadingOverlay);
 
-  // Leer archivo
+  // Read file
   const reader = new FileReader();
-  
+ 
   reader.onload = (e) => {
-    // Eliminar overlay de carga
+    // Remove loading overlay
     document.body.removeChild(loadingOverlay);
-    
-    // Obtener contenido del archivo
+   
+    // Get file content
     const fileContent = e.target.result;
-    
-    // Actualizar input y preview
+   
+    // Update input and preview
     markdownInput.value = fileContent;
-    
-    // Convertir y mostrar HTML
+   
+    // Convert and show HTML
     const html = convertToHtml(fileContent);
     renderPreview(html);
     updateWordCount();
   };
-  
+ 
   reader.onerror = () => {
-    // Eliminar overlay de carga
+    // Remove loading overlay
     document.body.removeChild(loadingOverlay);
-    
+   
     console.error('Error en carga de archivo');
     alert('No se pudo cargar el archivo. Verifique que sea un archivo de texto válido.');
   };
-  
-  // Iniciar lectura del archivo
+ 
+  // Start file reading
   reader.readAsText(file);
 });
 
-// Evento para actualizar el preview y el contador de palabras en tiempo real
+// Event to update preview and word count in real-time
 markdownInput.addEventListener("input", function () {
   const text = markdownInput.value;
   const html = convertToHtml(text);
@@ -181,23 +271,30 @@ markdownInput.addEventListener("input", function () {
   updateWordCount();
 });
 
-// Evento para limpiar el editor
+// Event to clear the editor
 clearEditorButton.addEventListener("click", clearEditor);
 
-// Agregar evento de exportación
+// Add export event
 exportPdfButton.addEventListener('click', () => {
     exportToPdf()
         .then(message => {
             console.log(message);
-            // Notificación de éxito (opcional)
+            // Optional success notification
         })
         .catch(error => {
             console.error('Error en exportación:', error);
         });
 });
 
-// Inicializar el contador al cargar la página
+// Event listeners for auto-save and restore
+markdownInput.addEventListener('input', saveToLocalStorage);
+clearSavedContentButton.addEventListener('click', clearSavedContent);
+
+// Restore content when page loads
+document.addEventListener('DOMContentLoaded', restoreFromLocalStorage);
+
+// Initialize word count on page load
 updateWordCount();
 
-// Agregar input de archivo al body
+// Add file input to body
 document.body.appendChild(fileInput);
