@@ -21,6 +21,69 @@ function convertTextStyles(html) {
 }
 
 /**
+ * Función de transformación envuelta en promesa con manejo de excepciones
+ * @param {string} markdownText - Texto Markdown a convertir
+ * @returns {Promise} Promesa que resuelve con HTML o rechaza con error
+ */
+function transformMarkdownToHtml(markdownText) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Crear un contenedor para capturar posibles errores
+            let html = markdownText;
+
+            // Validaciones de sintaxis básicas
+            const syntaxErrors = [];
+
+            // Validación de encabezados
+            const headingMatches = html.match(/^(#{1,6})\s/gm);
+            if (headingMatches) {
+                headingMatches.forEach(heading => {
+                    if (heading.length > 7) {
+                        syntaxErrors.push(`Encabezado inválido: ${heading.trim()}`);
+                    }
+                });
+            }
+
+            // Validación de negrita y cursiva
+            const boldItalicMatches = html.match(/(\*{1,2}[^*\n]+\*{1,2})/g);
+            if (boldItalicMatches) {
+                boldItalicMatches.forEach(match => {
+                    const unbalancedStars = (match.match(/\*/g) || []).length;
+                    if (unbalancedStars % 2 !== 0) {
+                        syntaxErrors.push(`Formato de negrita/cursiva incompleto: ${match}`);
+                    }
+                });
+            }
+
+            // Convertir si no hay errores
+            if (syntaxErrors.length === 0) {
+                html = convertHeadings(html);
+                html = convertLists(html);
+                html = convertTextStyles(html);
+                html = processCodeBlocks(html);
+
+                resolve({
+                    html: html,
+                    warnings: []
+                });
+            } else {
+                // Resolver con advertencias si hay errores leves
+                resolve({
+                    html: markdownText, // Mantener texto original
+                    warnings: syntaxErrors
+                });
+            }
+        } catch (error) {
+            // Rechazar promesa con error crítico
+            reject({
+                message: "Error crítico en transformación",
+                details: error.message
+            });
+        }
+    });
+}
+
+/**
  * Convierte el texto Markdown a HTML
  */
 function convertToHtml(text) {
@@ -28,6 +91,6 @@ function convertToHtml(text) {
   html = convertHeadings(html);
   html = convertLists(html);
   html = convertTextStyles(html);
-  html = processCodeBlocks(html); // Agregar esta línea
+  html = processCodeBlocks(html);
   return html;
 }
