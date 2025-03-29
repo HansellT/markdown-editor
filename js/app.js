@@ -1,4 +1,4 @@
-/*
+/**
  * Variables para obtener elementos HTML
  */
 const markdownInput = document.querySelector("#markdown-input");
@@ -14,14 +14,14 @@ markdownInput.parentNode.appendChild(wordCountDisplay);
 // Key for localStorage
 const LOCAL_STORAGE_KEY = 'markdown-editor-content';
 
-/*
+/**
  * Renderiza el HTML generado en la vista previa con espaciado
  */
 function renderPreview(html) {
   previewSection.innerHTML = `<div class="space-y-3">${html}</div>`;
 }
 
-/*
+/**
  * Actualiza el contador de palabras y caracteres
  */
 function updateWordCount() {
@@ -31,7 +31,7 @@ function updateWordCount() {
   wordCountDisplay.textContent = `Palabras: ${words.length} | Caracteres: ${characters}`;
 }
 
-/*
+/**
  * Limpia el editor y la vista previa
  */
 function clearEditor() {
@@ -51,7 +51,7 @@ function restoreFromLocalStorage() {
     const savedContent = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (savedContent) {
         markdownInput.value = savedContent;
-        
+       
         // Convert and show HTML
         const html = convertToHtml(savedContent);
         renderPreview(html);
@@ -62,16 +62,15 @@ function restoreFromLocalStorage() {
 // Function to clear saved content
 function clearSavedContent() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    
+   
     // Optional: Clear editor and preview
     clearEditor();
-    
+   
     // Show notification
     const notification = document.createElement('div');
     notification.className = 'fixed top-4 right-4 bg-yellow-500 text-white p-4 rounded-lg z-50';
     notification.textContent = 'Contenido guardado eliminado';
     document.body.appendChild(notification);
-
     setTimeout(() => {
         document.body.removeChild(notification);
     }, 3000);
@@ -80,26 +79,39 @@ function clearSavedContent() {
 // Function to download Markdown file
 function downloadMarkdownFile() {
     const text = markdownInput.value;
-    
+
+    // Validate if there's content to download
+    if (!text.trim()) {
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg z-50';
+        notification.textContent = 'No hay contenido para descargar';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+        return;
+    }
+
     // Generate filename with current date and time
     const currentDate = new Date();
-    const formattedDate = currentDate.toISOString().replace(/[:.]/g, '-');
+    const formattedDate = currentDate.toISOString().replace(/[:\.]/g, '-');
     const filename = `markdown-${formattedDate}.md`;
 
     // Create a Blob with the Markdown content
     const blob = new Blob([text], { type: 'text/markdown' });
-    
+
     // Create a download link
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = filename;
-    
+
     // Trigger download
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-    // Optional: Show a success notification
+    // Show success notification
     const notification = document.createElement('div');
     notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg z-50';
     notification.textContent = `Archivo ${filename} descargado`;
@@ -110,23 +122,6 @@ function downloadMarkdownFile() {
         document.body.removeChild(notification);
     }, 3000);
 }
-
-// Add download button to the header
-const downloadMarkdownButton = document.createElement('button');
-downloadMarkdownButton.id = 'download-markdown';
-downloadMarkdownButton.textContent = 'Descargar MD';
-downloadMarkdownButton.className = 'bg-purple-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-purple-400 transition';
-
-// Add clear saved content button
-const clearSavedContentButton = document.createElement('button');
-clearSavedContentButton.id = 'clear-saved-content';
-clearSavedContentButton.textContent = 'Limpiar Guardado';
-clearSavedContentButton.className = 'bg-red-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-red-400 transition';
-
-// Insert buttons in the header
-const header = document.querySelector('header');
-header.appendChild(downloadMarkdownButton);
-header.appendChild(clearSavedContentButton);
 
 // Function for exporting to PDF (from original code)
 function exportToPdf() {
@@ -184,7 +179,6 @@ function exportToPdf() {
                 setTimeout(() => {
                     document.body.removeChild(errorNotification);
                 }, 3000);
-
                 reject(error);
             }
         }, 1500); // Simulate processing time
@@ -197,13 +191,28 @@ fileInput.type = 'file';
 fileInput.accept = '.md';
 fileInput.style.display = 'none';
 
+// Create download Markdown button
+const downloadMarkdownButton = document.createElement('button');
+downloadMarkdownButton.id = 'download-markdown';
+downloadMarkdownButton.textContent = 'Descargar MD';
+downloadMarkdownButton.className = 'bg-purple-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-purple-400 transition';
+
+// Add clear saved content button
+const clearSavedContentButton = document.createElement('button');
+clearSavedContentButton.id = 'clear-saved-content';
+clearSavedContentButton.textContent = 'Limpiar Guardado';
+clearSavedContentButton.className = 'bg-red-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-red-400 transition';
+
 // Create PDF export button
 const exportPdfButton = document.createElement('button');
 exportPdfButton.id = 'export-pdf';
 exportPdfButton.textContent = 'Exportar PDF';
 exportPdfButton.className = 'bg-blue-500 text-white px-5 py-2 font-semibold rounded-md shadow-md hover:bg-blue-400 transition';
 
-// Insert button in the header
+// Insert buttons in the header
+const header = document.querySelector('header');
+header.appendChild(downloadMarkdownButton);
+header.appendChild(clearSavedContentButton);
 header.appendChild(exportPdfButton);
 
 // Event to open file selector
@@ -273,6 +282,9 @@ markdownInput.addEventListener("input", function () {
 
 // Event to clear the editor
 clearEditorButton.addEventListener("click", clearEditor);
+
+// Add download event
+downloadMarkdownButton.addEventListener('click', downloadMarkdownFile);
 
 // Add export event
 exportPdfButton.addEventListener('click', () => {
